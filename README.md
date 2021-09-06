@@ -7,5 +7,5 @@ differential drive controller for vrep robots. Currently tested for
 
 
 ## Quick start 
-Copy **DiffController.lua** file to **<vrep_dir>/lua/**
-The run the examples 
+First copy **DiffController.lua** file to **<vrep_dir>/lua/**.
+Then run the examples. 
