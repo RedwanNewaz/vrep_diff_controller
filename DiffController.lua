@@ -1,3 +1,4 @@
+
 local matrix_mul = function( m1, m2 )
     -- this function is borrowed from https://github.com/davidm/lua-matrix/blob/master/lua/matrix.lua
 	-- multiply rows with columns
@@ -36,11 +37,11 @@ function DiffController:new(o, robotName, goalObjectName, wheelMotorNames, lengt
     self.__index = self
     self.length = length 
     self.radius = radius 
-    self.goal = sim.getObjectHandle(goalObjectName, -1)
-    self.robot = sim.getObjectHandle(robotName, -1)
+    self.goal = sim.getObject(goalObjectName)
+    self.robot = sim.getObject(robotName)
     self.motorHandles = {}
     for i = 1, #wheelMotorNames do 
-        self.motorHandles[i] = sim.getObjectHandle(wheelMotorNames[i],-1)
+        self.motorHandles[i] = sim.getObject(wheelMotorNames[i])
     end
     self.__initialized = false
     return o
@@ -121,6 +122,14 @@ function DiffController:computeUnicycleControl(x, goal)
     theta = math.mod((x[3] - math.pi/2), (2 * math.pi)) 
 
     rho = math.sqrt(x_diff * x_diff + y_diff * y_diff)
+    --print(rho)
+    if rho < 2 * self.radius then
+        
+        return 0, 0
+    end
+    
+    
+    
     alpha = (math.atan2(y_diff, x_diff)
              - theta + math.pi) % (2 * math.pi) - math.pi
     beta = (theta_goal - theta - alpha + math.pi) % (2 * math.pi) - math.pi
@@ -164,3 +173,36 @@ function DiffController:update()
     end 
 
  end
+ 
+
+ --[[ example usage : open RobotnikSummitXL script and paste the following code. Make sure create a target /Cuboid object
+
+--lua
+
+sim=require'sim'
+
+function sysCall_init()
+    package.path = package.path .. ";/home/redwan/CoppeliaSimProjects/visibility_patrol/?.lua"
+    require 'DiffController'
+    Kp_rho = 0.25 
+    Kp_alpha = 1.5 
+    Kp_beta = 0
+    
+    local radius = 0.235
+    local length = 0.485
+    motorNames = {'./front_left_wheel', './front_right_wheel', './back_right_wheel', './back_left_wheel' }
+    controller = DiffController:new(nil, '/RobotnikSummitXL', '/Cuboid', motorNames, length, radius)
+    controller:setGains(Kp_rho, Kp_alpha, Kp_beta) 
+
+  end
+  
+  function sysCall_thread()
+  
+      while (1) do
+          controller:update()
+      end
+   
+  end
+  
+  
+ ]]
